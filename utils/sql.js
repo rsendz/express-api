@@ -13,9 +13,7 @@ const sqlConfig = {
 
 const sqlConnect  = async () => {
     try {
-        console.log("Trying connection...");
         const pool = await sql.connect(sqlConfig);
-        console.log("Connected to MSSQL");
         return pool;
     } catch (error) {
         console.error("Database connection failed:", error);
