@@ -1,5 +1,7 @@
 import {sqlConnect , sql} from "../utils/sql.js";
 
+// USE STORED PROCEDURES IN REAL WORLD APPLICATIONS INSTEAD TO PREVENT SECURITY ISSUES.
+
 export const getItems = async (req, res) => {
     const pool = await sqlConnect();
     const result = await pool.request().query("SELECT * FROM items");
