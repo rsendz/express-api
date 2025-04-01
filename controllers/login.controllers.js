@@ -2,25 +2,34 @@ import {sqlConnect , sql} from "../utils/sql.js";
 import crypto from "crypto";
 
 export const login = async (req, res) => {
-    const pool = await sqlConnect();
-    const result = await pool
-        .request()
-        .input("username", sql.VarChar, req.body.username)
-        .query("SELECT * FROM users WHERE username = @username");
-    let isLogin = result.recordset[0].password === req.body.password // result.recordset[0] is the first row of the result which is only one row in this case
-    if (isLogin) {
-        res.status(200).json({ isLogin : isLogin, user: data.recordset[0] });
-    } else {
-        res.status(400).json({ isLogin : isLogin, user : {} });
-    }
+  const pool = await sqlConnect();
+  const result = await pool
+      .request()
+      .input("username", sql.VarChar, req.body.username)
+      .query("SELECT password FROM users WHERE username = @username");
+
+  if (result.recordset.length === 0) {
+      return res.status(400).json({ isLogin: false, message: "User not found" });
+  }
+
+  const storedHash = result.recordset[0].password;
+  const salt = storedHash.slice(-10);
+  const pepper = process.env.PEPPER;
+  const inputHash = pepper + crypto.createHash("sha256").update(req.body.password).digest("base64url") + salt;
+
+  if (inputHash === storedHash) {
+      res.status(200).json({ isLogin: true, message: "Login successful" });
+  } else {
+      res.status(400).json({ isLogin: false, message: "Invalid credentials" });
+  }
 };
+
 
 export const newUser = async (req, res) => {
     const pool = await sqlConnect();
-    const salt = crypto.randomBytes(24).toString("base64url");
-    console.log(salt);
-    const hash = (crypto.createHash("sha256").update(req.body.password).digest("base64url")) + salt;
-    console.log(hash);
+    const salt = crypto.randomBytes(7).toString("base64url");
+    const pepper = process.env.PEPPER;
+    const hash = pepper + crypto.createHash("sha256").update(req.body.password).digest("base64url") + salt;
     const data = await pool
       .request()
       .input("name", sql.VarChar, req.body.name)
@@ -32,8 +41,9 @@ export const newUser = async (req, res) => {
   
   export const updateUser = async (req, res) => {
     const pool = await sqlConnect();
-    const salt = crypto.randomBytes(24).toString("base64url");
-    const hash = (crypto.createHash("sha256").update(req.body.password).digest("base64url")) + salt;
+    const salt = crypto.randomBytes(7).toString("base64url");
+    const pepper = process.env.PEPPER;
+    const hash = pepper + crypto.createHash("sha256").update(req.body.password).digest("base64url") + salt;
     const data = await pool
       .request()
       .input("username", sql.VarChar, req.body.username)
