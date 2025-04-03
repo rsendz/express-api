@@ -13,7 +13,7 @@ export const login = async (req, res) => {
   }
 
   const storedHash = result.recordset[0].password;
-  const salt = storedHash.slice(-10);
+  const salt = storedHash.slice(process.env.SALT_SIZE);
   const pepper = process.env.PEPPER;
   const inputHash = pepper + crypto.createHash("sha256").update(req.body.password).digest("base64url") + salt;
 
@@ -27,7 +27,7 @@ export const login = async (req, res) => {
 
 export const newUser = async (req, res) => {
     const pool = await sqlConnect();
-    const salt = crypto.randomBytes(7).toString("base64url");
+    const salt = crypto.randomBytes(process.env.RANDOM_BYTES_NUM).toString("base64url");
     const pepper = process.env.PEPPER;
     const hash = pepper + crypto.createHash("sha256").update(req.body.password).digest("base64url") + salt;
     const data = await pool
@@ -41,7 +41,7 @@ export const newUser = async (req, res) => {
   
   export const updateUser = async (req, res) => {
     const pool = await sqlConnect();
-    const salt = crypto.randomBytes(7).toString("base64url");
+    const salt = crypto.randomBytes(process.env.RANDOM_BYTES_NUM).toString("base64url");
     const pepper = process.env.PEPPER;
     const hash = pepper + crypto.createHash("sha256").update(req.body.password).digest("base64url") + salt;
     const data = await pool
