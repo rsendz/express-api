@@ -1,4 +1,4 @@
-import {sqlConnect , sql} from "../utils/sql.js";
+import {sqlConnect , sql} from "../utils/db_connections/sql.js";
 
 // USE STORED PROCEDURES IN REAL WORLD APPLICATIONS INSTEAD TO PREVENT SECURITY ISSUES.
 

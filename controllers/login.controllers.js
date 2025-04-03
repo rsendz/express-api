@@ -1,5 +1,6 @@
-import {sqlConnect , sql} from "../utils/sql.js";
+import {sqlConnect , sql} from "../utils/db_connections/sql.js";
 import crypto from "crypto";
+import jwt from "jsonwebtoken";
 
 export const login = async (req, res) => {
   const pool = await sqlConnect();
@@ -18,7 +19,8 @@ export const login = async (req, res) => {
   const inputHash = pepper + crypto.createHash("sha256").update(req.body.password).digest("base64url") + salt;
 
   if (inputHash === storedHash) {
-      res.status(200).json({ isLogin: true, message: "Login successful" });
+      const token = jwt.sign({ sub: result.recordset[0].id_user }, process.env.JWT, { expiresIn : "1h" });
+      res.status(200).json({ isLogin: true, message: "Login successful", token : token });
   } else {
       res.status(400).json({ isLogin: false, message: "Invalid credentials" });
   }
